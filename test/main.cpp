@@ -11,16 +11,20 @@ namespace BuildTest {
 namespace FLMOIF {
 
 int foo() {
-	std::cout << "valami 3\n";
+	std::cout << "Task 2\n";
 	return 5;
 }
 
 void Test() {
 	auto task = Focus::Concurency::CreateTask(foo);
 
-	std::cout << "valami\n" << task.Get();;
+	std::cout << "Task 1 Step 1.\n";
+	
+	std::cout << "Task 1 will be yielded.\n";
 	Focus::Concurency::Yield();
-	std::cout << "valami 2\n";
+	std::cout << "Task 1 revived.\n";
+
+	std::cout << "Task 2 result " << task.Get() << "\n";
 }
 
 void BuildTestMethod() {
@@ -29,7 +33,7 @@ void BuildTestMethod() {
 	auto event_ = ::CreateEvent(nullptr, false, false, nullptr);
 
 	auto task = Focus::Concurency::CreateTask([&](int k, auto f) {
-		std::cout << k << f << "\n";
+		std::cout << "print task parameters: " << k << ", " << f << "\n";
 		Test();
 		SetEvent(event_);
 		return 5;
