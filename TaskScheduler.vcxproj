@@ -18,6 +18,16 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup Condition="!$(Configuration.Contains('Clang'))" Label="Configuration">
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('Clang'))" Label="Configuration">
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+  </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props" Condition="Exists('packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props')" />
+    <Import Project="ExternalVisualCppTools.props" Condition="'$(PlatformToolset)'=='v140_clang_c2' And Exists('packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props')" />
+  </ImportGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4CFB9EF8-F033-44AF-9033-D9CD3E27293F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -36,29 +46,23 @@
   </PropertyGroup>
   <PropertyGroup Condition="$(Configuration.Contains('Release'))" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
-  <PropertyGroup Condition="!$(Configuration.Contains('Clang'))" Label="Configuration">
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('Clang'))" Label="Configuration">
-    <PlatformToolset>v140_clang_c2</PlatformToolset>
-  </PropertyGroup>
-  <Import Project="..\packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props" Condition="Exists('..\packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props')" />
-  <Import Project="ExternalVisualCppTools.props" Condition="Exists('..\packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+  </ImportGroup>
   <PropertyGroup Condition="$(Configuration.Contains('Debug'))" Label="Configuration">
     <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('Release'))" Label="Configuration">
-    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)implementation;$(ProjectDir)interface;$(ProjectDir)thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PreprocessorDefinitions>NDEBUG;WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -71,16 +75,23 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="$(Configuration.Contains('Clang'))">
     <ClCompile>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>-std=c++1z %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="$(Configuration.Contains('Release'))">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <Link>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Clang|x64'">
+    <Link>
+      <AdditionalDependencies>concrtd.lib;msvcprtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -88,12 +99,16 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+	  <DisableSpecificWarnings>4514;4710;4711</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Clang|x64'">
     <ClCompile>
       <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>concrt.lib;msvcprt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -104,25 +119,68 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+	  <DisableSpecificWarnings>4514;4710;4711</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="implementation\Allocator.h" />
+    <ClInclude Include="implementation\CommonHeaders.h" />
+    <ClInclude Include="implementation\Fiber.h" />
+    <ClInclude Include="implementation\FiberEntry.h" />
+    <ClInclude Include="implementation\FiberPool.h" />
+    <ClInclude Include="implementation\FiberPoolInternal.h" />
+    <ClInclude Include="implementation\LockFreeRingBuffer.h" />
+    <ClInclude Include="implementation\ThreadEntry.h" />
+    <ClInclude Include="implementation\ThreadPool.h" />
+    <ClInclude Include="implementation\WinAPI.h" />
+    <ClInclude Include="interface\AsyncReturnValueWrapper.h" />
+    <ClInclude Include="interface\Config.h" />
+    <ClInclude Include="interface\RefCountedObject.h" />
+    <ClInclude Include="interface\Task.h" />
+    <ClInclude Include="interface\TaskParameters.h" />
+    <ClInclude Include="interface\TaskParameterUnmounter.h" />
+    <ClInclude Include="interface\TaskScheduler.h" />
+    <ClInclude Include="interface\tuple_ext.h" />
+    <ClInclude Include="interface\type_traits_ext.h" />
+    <ClInclude Include="interface\Utilities.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="thirdparty\ntpebteb.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="implementation\Fiber.cpp" />
+    <ClCompile Include="implementation\FiberEntry.cpp" />
+    <ClCompile Include="implementation\FiberPool.cpp" />
     <ClCompile Include="implementation\stdafx.cpp">
       <ExcludedFromBuild Condition="$(Configuration.Contains('Clang'))">true</ExcludedFromBuild>
       <PrecompiledHeader Condition="!$(Configuration.Contains('Clang'))">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="implementation\Task.cpp" />
+    <ClCompile Include="implementation\TaskScheduler.cpp" />
+    <ClCompile Include="implementation\ThreadEntry.cpp" />
+    <ClCompile Include="implementation\ThreadPool.cpp" />
     <ClCompile Include="test\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="implementation\Assembly\SwitchToFocusFiber.asm" />
+    <MASM Include="implementation\Assembly\SwitchToFocusFiberAndSavePrevious.asm" />
+    <MASM Include="implementation\Assembly\Yield.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="interface\RefCountedObject.natvis" />
+    <Natvis Include="interface\Task.natvis" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="ExternalVisualCppTools.props" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props'))" />
+  </Target>
 </Project>

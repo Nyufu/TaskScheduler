@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="ReferenceReturnValue&lt;*&gt;">
+    <DisplayString Condition="value == nullptr">uninitialized</DisplayString>
+    <DisplayString>{*value}</DisplayString>
+    <Expand>
+      <Item Name="[Value]">*value</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="NonReferenceReturnValue&lt;*&gt;">
+    <DisplayString Condition="assigned == false">uninitialized</DisplayString>
+    <DisplayString>{ *(($T1 *) &amp;value) }</DisplayString>
+    <Expand>
+      <Item Name="[Value]">*(($T1 *) &amp;value)</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="Focus::Concurency::Task&lt;*&gt;">
+    <DisplayString Condition="sharedData.ptr == nullptr">empty</DisplayString>
+    <DisplayString>{sharedData.ptr->state,en}</DisplayString>
+
+    <Expand>
+      <Item Name="[State]">sharedData.ptr->state,en</Item>
+      <!--
+      <Item Name="[Task Creation]"></Item>
+      <Item Name="[Function]"></Item>
+      -->
+      <Item Name="[Result]">sharedData.ptr->returnValue</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>

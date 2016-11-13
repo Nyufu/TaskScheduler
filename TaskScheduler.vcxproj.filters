@@ -13,9 +13,75 @@
     <Filter Include="test">
       <UniqueIdentifier>{e71bad96-2290-4827-bf74-f2fba6b50551}</UniqueIdentifier>
     </Filter>
+    <Filter Include="implementation\Assembly">
+      <UniqueIdentifier>{68a494d5-89fe-4606-a8d8-c353303ddc5d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="implementation\Allocator.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\CommonHeaders.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\Fiber.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\FiberEntry.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\FiberPool.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\FiberPoolInternal.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\LockFreeRingBuffer.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\ThreadEntry.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\ThreadPool.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\WinAPI.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="interface\AsyncReturnValueWrapper.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="interface\Config.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="interface\RefCountedObject.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="interface\Task.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="interface\TaskParameters.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="interface\TaskParameterUnmounter.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="interface\TaskScheduler.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="interface\tuple_ext.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="interface\type_traits_ext.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="interface\Utilities.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="thirdparty\ntpebteb.h">
+      <Filter>thirdparty</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="implementation\stdafx.cpp">
@@ -24,9 +90,49 @@
     <ClCompile Include="test\main.cpp">
       <Filter>test</Filter>
     </ClCompile>
+    <ClCompile Include="implementation\Fiber.cpp">
+      <Filter>implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="implementation\FiberEntry.cpp">
+      <Filter>implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="implementation\FiberPool.cpp">
+      <Filter>implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="implementation\Task.cpp">
+      <Filter>implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="implementation\TaskScheduler.cpp">
+      <Filter>implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="implementation\ThreadEntry.cpp">
+      <Filter>implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="implementation\ThreadPool.cpp">
+      <Filter>implementation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="ExternalVisualCppTools.props" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="interface\RefCountedObject.natvis">
+      <Filter>interface</Filter>
+    </Natvis>
+    <Natvis Include="interface\Task.natvis">
+      <Filter>interface</Filter>
+    </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="implementation\Assembly\SwitchToFocusFiber.asm">
+      <Filter>implementation\Assembly</Filter>
+    </MASM>
+    <MASM Include="implementation\Assembly\SwitchToFocusFiberAndSavePrevious.asm">
+      <Filter>implementation\Assembly</Filter>
+    </MASM>
+    <MASM Include="implementation\Assembly\Yield.asm">
+      <Filter>implementation\Assembly</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

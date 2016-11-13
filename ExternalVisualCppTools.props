@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <PropertyGroup>
+    <VC_VC_IncludePath>$(VCInstallDir)include;</VC_VC_IncludePath>
+  </PropertyGroup>
+
   <Choose>
     <When Condition="'$(Platform)' == 'Win32'">
       <PropertyGroup Condition="'$(VCInstallDir)' != ''">
         <VC_ExecutablePath_x86_x86 />
         <VC_ExecutablePath_x86_x64 />
         <VC_ExecutablePath_x86_ARM />
-        <VC_ReferencesPath_VC_x86>$(VCInstallDir)lib;</VC_ReferencesPath_VC_x86>
-        <VC_ReferencesPath_ATL_x86 />
-        <VC_LibraryPath_VC_x86>$(VCInstallDir)lib;</VC_LibraryPath_VC_x86>
-        <VC_LibraryPath_ATL_x86 />
+        <VC_ReferencesPath_VC_x86>$(VCInstallDir)lib</VC_ReferencesPath_VC_x86>
+        <VC_LibraryPath_VC_x86>$(VCInstallDir)lib</VC_LibraryPath_VC_x86>
       </PropertyGroup>
     </When>
     <When Condition="'$(Platform)' == 'x64'">
@@ -18,30 +20,19 @@
         <VC_ExecutablePath_x86_x86 />
         <VC_ExecutablePath_x86_x64 />
         <VC_ExecutablePath_x86_ARM />
-        <VC_ReferencesPath_VC_x86>$(VCInstallDir)lib;</VC_ReferencesPath_VC_x86>
-        <VC_ReferencesPath_ATL_x86 />
-        <VC_LibraryPath_VC_x86>$(VCInstallDir)lib;</VC_LibraryPath_VC_x86>
-        <VC_LibraryPath_ATL_x86 />
+        <VC_ReferencesPath_VC_x86>$(VCInstallDir)lib</VC_ReferencesPath_VC_x86>
+        <VC_LibraryPath_VC_x86>$(VCInstallDir)lib</VC_LibraryPath_VC_x86>
         <VC_ExecutablePath_x64_x86 />
         <VC_ExecutablePath_x64_x64 />
         <VC_ExecutablePath_x64_ARM />
         <VC_ReferencesPath_VC_x64>$(VCInstallDir)lib\amd64</VC_ReferencesPath_VC_x64>
-        <VC_ReferencesPath_ATL_x64 />
-        <VC_LibraryPath_VC_x64>$(VCInstallDir)lib\amd64;</VC_LibraryPath_VC_x64>
-        <VC_LibraryPath_ATL_x64 />
+        <VC_LibraryPath_VC_x64>$(VCInstallDir)lib\amd64</VC_LibraryPath_VC_x64>
       </PropertyGroup>
     </When>
     <When Condition="'$(Platform)' == 'ARM'">
       <PropertyGroup />
     </When>
   </Choose>
-
-  <PropertyGroup>
-    <VC_CRT_SourcePath />
-    <VC_ATLMFC_SourcePath />
-    <VC_VC_IncludePath>$(VCInstallDir)include;</VC_VC_IncludePath>
-    <VC_ATLMFC_IncludePath />
-  </PropertyGroup>
 
   <PropertyGroup>
     <VCInstallDir_140 />
