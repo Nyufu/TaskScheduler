@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="implementation">
+      <UniqueIdentifier>{4f5ddc10-3243-45b9-8329-f6a70eb62fac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="interface">
+      <UniqueIdentifier>{ca3b0ff6-fbbd-45ca-b232-e6a830835c2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thirdparty">
+      <UniqueIdentifier>{f7450d96-7ed3-4d3e-9c09-cf86f1de72a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{e71bad96-2290-4827-bf74-f2fba6b50551}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="implementation\stdafx.cpp">
+      <Filter>implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="test\main.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="ExternalVisualCppTools.props" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug_Clang|x64">
+      <Configuration>Debug_Clang</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_Clang|x64">
+      <Configuration>Release_Clang</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4CFB9EF8-F033-44AF-9033-D9CD3E27293F}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>TaskScheduler</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <OutDir>$(SolutionDir)out\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)out\tmp\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('Debug'))" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('Release'))" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="!$(Configuration.Contains('Clang'))" Label="Configuration">
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('Clang'))" Label="Configuration">
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="..\packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props" Condition="Exists('..\packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props')" />
+  <Import Project="ExternalVisualCppTools.props" Condition="Exists('..\packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props')" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="$(Configuration.Contains('Debug'))" Label="Configuration">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('Release'))" Label="Configuration">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)implementation;$(ProjectDir)interface;$(ProjectDir)thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PreprocessorDefinitions>NDEBUG;WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="!$(Configuration.Contains('Clang'))">
+    <ClCompile>
+      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="$(Configuration.Contains('Clang'))">
+    <ClCompile>
+      <AdditionalOptions>-std=c++1z %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="$(Configuration.Contains('Release'))">
+    <Link>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Clang|x64'">
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <SDLCheck>true</SDLCheck>
+      <SmallerTypeCheck>true</SmallerTypeCheck>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Clang|x64'">
+    <ClCompile>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="implementation\stdafx.cpp">
+      <ExcludedFromBuild Condition="$(Configuration.Contains('Clang'))">true</ExcludedFromBuild>
+      <PrecompiledHeader Condition="!$(Configuration.Contains('Clang'))">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="test\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ExternalVisualCppTools.props" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
