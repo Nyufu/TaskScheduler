@@ -4,47 +4,43 @@
 #include <intrin.h>
 #include <utility>
 
-template<class _Ty>
+template<class Ty>
 struct RefCountedObject;
 
-template<class _Ty, class Enable = void>
+template<class Ty, typename Enable = void>
 class RefCountedObjectBase {
-	static_assert(_STD is_class_v<_Ty>, "The _Ty can only be class or struct.");
+	static_assert(STD is_class_v<Ty>, "The Ty can only be class or struct.");
 };
 
-#pragma warning( push )
-#pragma warning(disable : 4820)
-
-template<class _Ty>
-class RefCountedObjectBase<_Ty, _STD enable_if_t<_STD is_class_v<_Ty>>> : public _Ty {
+template<class Ty>
+class RefCountedObjectBase<Ty, STD enable_if_t<STD is_class_v<Ty>>> : public Ty {
 public:
-	typedef _Ty _Base;
+	typedef Ty Base;
 
 public:
-	template<class ...Args>
-	__forceinline RefCountedObjectBase(Args... args) noexcept
-		: _Base{ _STD forward<Args>(args)... } {
-		//static_assert(_STD is_nothrow_constructible_v<_Base, Args...>, "The RefCountedObject now suppports only nothrow constructible _Ty ");
+	template<typename... Args>
+	RefCountedObjectBase(Args&&... args) noexcept
+		: Base{ STD forward<Args>(args)... } {
 	}
 
-	RefCountedObjectBase(const RefCountedObjectBase& _Other) = delete;
-	RefCountedObjectBase(RefCountedObjectBase&& _Other) = delete;
+	RefCountedObjectBase(const RefCountedObjectBase&) = delete;
+	RefCountedObjectBase(RefCountedObjectBase&&) = delete;
 
-	RefCountedObjectBase& operator=(const RefCountedObjectBase& _Other) = delete;
-	RefCountedObjectBase& operator=(RefCountedObjectBase&& _Other) = delete;
+	RefCountedObjectBase& operator=(const RefCountedObjectBase&) = delete;
+	RefCountedObjectBase& operator=(RefCountedObjectBase&&) = delete;
 
 protected:
-	__forceinline void Incref() noexcept {
+	void Incref() noexcept {
 		_InterlockedIncrement16(&uses);
 	}
 
-	__forceinline void Decref() noexcept {
+	void Decref() noexcept {
 		if (_InterlockedDecrement16(&uses) == 0)
 			DeleteThis();
 	}
 
 private:
-	__forceinline void DeleteThis() const noexcept {
+	void DeleteThis() const noexcept {
 		::delete this;
 	}
 
@@ -52,98 +48,86 @@ private:
 	volatile short uses = 1;
 
 protected:
-	friend RefCountedObject<_Ty>;
+	friend RefCountedObject<Ty>;
 };
-
-#pragma warning( pop )
 
 struct AllocateTokenType {
 };
 
 constexpr AllocateTokenType AllocateToken{};
 
-template<class _Ty>
+template<class Ty>
 struct RefCountedObject {
 public:
-	typedef RefCountedObject<_Ty> _Myt;
-	typedef RefCountedObjectBase<_Ty> _Ptrt;
-	typedef typename _Ptrt::_Base _Valuet;
+	typedef RefCountedObject<Ty> MyTy;
+	typedef RefCountedObjectBase<Ty> PtrTy;
+	typedef typename PtrTy::Base ValueTy;
 
 public:
 	RefCountedObject() noexcept = default;
 
-	template<class ...Args>
-	__forceinline RefCountedObject(AllocateTokenType, Args... args) noexcept
-		: ptr{ ::new (_STD nothrow) _Ptrt{ _STD forward<Args>(args)... } } {
+	template<typename... Args>
+	RefCountedObject(AllocateTokenType, Args&&... args) noexcept
+		: ptr{ ::new (STD nothrow) PtrTy{ STD forward<Args>(args)... } } {
 	}
 
-	__forceinline RefCountedObject(const _Myt& _Other) noexcept : ptr{ _Other.ptr } {
-		if (ptr)
-			ptr->Incref();
+	RefCountedObject(const MyTy& other) noexcept : ptr{ other.ptr } {
+		AddRef();
 	}
 
-	__forceinline RefCountedObject(_Myt&& _Right) noexcept : ptr{ _Right.ptr } {
-		_Right.ptr = nullptr;
+	RefCountedObject(MyTy&& right) noexcept : ptr{ right.ptr } {
+		right.ptr = nullptr;
 	}
 
-	__forceinline _Myt& operator=(const _Myt& _Other) noexcept {
-		if (ptr != _Other.ptr) {
-			if (ptr)
-				ptr->Decref();
-
-			ptr = _Other.ptr;
-
-			if (ptr)
-				ptr->Incref();
+	MyTy& operator=(const MyTy& other) noexcept {
+		if (ptr != other.ptr) {
+			RemoveRef();
+			ptr = other.ptr;
+			AddRef();
 		}
 
 		return (*this);
 	}
 
-	__forceinline _Myt& operator=(_Myt&& _Right) noexcept {
-		_STD swap(ptr, _Right.ptr);
+	MyTy& operator=(MyTy&& right) noexcept {
+		STD swap(ptr, right.ptr);
 		return (*this);
 	};
 
-	__forceinline ~RefCountedObject() noexcept {
-		if (ptr)
-			ptr->Decref();
+	~RefCountedObject() noexcept {
+		RemoveRef();
 	}
 
-	__forceinline void AddRef() noexcept {
+	void AddRef() noexcept {
 		if (ptr)
 			ptr->Incref();
 	}
 
-	__forceinline void RemoveRef() noexcept {
+	void RemoveRef() noexcept {
 		if (ptr)
 			ptr->Decref();
 	}
 
-	__forceinline _Ptrt* GetBase() noexcept {
+	PtrTy* operator->() noexcept {
 		return (ptr);
 	}
 
-	__forceinline _Ptrt* operator->() noexcept {
+	const PtrTy* operator->() const noexcept {
 		return (ptr);
 	}
 
-	__forceinline const _Ptrt* operator->() const noexcept {
-		return (ptr);
-	}
-
-	__forceinline _STD add_lvalue_reference_t<_Valuet> operator*() noexcept {
+	STD add_lvalue_reference_t<ValueTy> operator*() noexcept {
 		return (*ptr);
 	}
 
-	__forceinline _STD add_lvalue_reference_t<const _Valuet> operator*() const noexcept {
+	STD add_lvalue_reference_t<const ValueTy> operator*() const noexcept {
 		return (*ptr);
 	}
 
-	__forceinline explicit operator bool() const noexcept {
+	explicit operator bool() const noexcept {
 		return (ptr != nullptr);
 	}
 
 protected:
-	_Ptrt* ptr = nullptr;
+	PtrTy* ptr = nullptr;
 };

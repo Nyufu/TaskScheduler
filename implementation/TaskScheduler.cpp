@@ -4,16 +4,16 @@
 #include "Fiber.h"
 #include "FiberPoolInternal.h"
 
-namespace Focus::Concurency {
+namespace Focus::Concurrency {
 
-_STD once_flag onceFlag;
+STD once_flag onceFlag;
 
 void TaskScheduler::Initialize(const InitDesc& initDesc, uint32_t numberOfThreads) {
-	_STD call_once(onceFlag, Internal::FiberPool::Initialize, initDesc, numberOfThreads);
+	STD call_once(onceFlag, Internal::FiberPool::Initialize, initDesc, numberOfThreads);
 }
 
 void TaskScheduler::Initialize(uint32_t numberOfThreads) {
-	_STD call_once(onceFlag, Internal::FiberPool::Initialize, InitDesc{ 512 * 1024 , 32, 32 * 1024 , 32, 4 * 1024 , 32 }, numberOfThreads);
+	STD call_once(onceFlag, Internal::FiberPool::Initialize, InitDesc{ 512 * 1024 , 32, 32 * 1024 , 32, 4 * 1024 , 32 }, numberOfThreads);
 }
 
 TaskScheduler::TaskObject::~TaskObject() {

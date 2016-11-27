@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Config.h"
+
 #define WIN32_LEAN_AND_MEAN
 
 #define NOATOM

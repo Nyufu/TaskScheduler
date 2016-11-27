@@ -1,9 +1,8 @@
 #pragma once
 
-#include <cstdint>
 #include "TaskParameters.h"
 
-namespace Focus::Concurency {
+namespace Focus::Concurrency {
 
 namespace Detail {
 
@@ -26,11 +25,10 @@ public:
 	};
 
 protected:
-
 	struct TaskObject {
-	public:
 		~TaskObject();
-		void* GetMemory(size_t sizeOfMemmory) const;
+		void* GetMemory(STD size_t sizeOfMemmory) const;
+
 		void* data;
 		TaskParameters::Priority priority;
 		uint8_t padding[4];

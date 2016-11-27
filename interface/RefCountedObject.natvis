@@ -1,3 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?> 
-<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010"> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="RefCountedObject&lt;*&gt;">
+    <SmartPointer Usage="Minimal">($T1*)ptr</SmartPointer>
+    <DisplayString Condition="ptr == nullptr">empty</DisplayString>
+    <DisplayString Condition="ptr != nullptr">{*($T1*)ptr}</DisplayString>
+    <Expand>
+      <Item Name="[data]">*($T1*)ptr</Item>
+      <Item Name="[References]">ptr-&gt;uses</Item> 
+    </Expand>
+  </Type>
 </AutoVisualizer>

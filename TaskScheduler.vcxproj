@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_Clang|x64">
       <Configuration>Debug_Clang</Configuration>
@@ -18,16 +18,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <PropertyGroup Condition="!$(Configuration.Contains('Clang'))" Label="Configuration">
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('Clang'))" Label="Configuration">
-    <PlatformToolset>v140_clang_c2</PlatformToolset>
-  </PropertyGroup>
-  <ImportGroup Label="ExtensionSettings">
-    <Import Project="packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props" Condition="Exists('packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props')" />
-    <Import Project="ExternalVisualCppTools.props" Condition="'$(PlatformToolset)'=='v140_clang_c2' And Exists('packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props')" />
-  </ImportGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4CFB9EF8-F033-44AF-9033-D9CD3E27293F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -38,8 +28,14 @@
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <OutDir>$(SolutionDir)out\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)out\tmp\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)out\bin\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)out\tmp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="!$(Configuration.Contains('Clang'))" Label="Configuration">
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('Clang'))" Label="Configuration">
+    <PlatformToolset>v141_clang_c2</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="$(Configuration.Contains('Debug'))" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -57,10 +53,13 @@
   <PropertyGroup Condition="$(Configuration.Contains('Debug'))" Label="Configuration">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup>
+    <ThirdPartyDir>$(ProjectDir)thirdparty\</ThirdPartyDir>
+    <IncludePath>$(IncludePath);$(ThirdPartyDir)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)implementation;$(ProjectDir)interface;$(ProjectDir)thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <AdditionalIncludeDirectories>$(ProjectDir)interface\;$(ProjectDir)implementation\;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PreprocessorDefinitions>WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -70,11 +69,15 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="!$(Configuration.Contains('Clang'))">
     <ClCompile>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <WarningLevel>Level4</WarningLevel>
+      <DiagnosticsFormat>Caret</DiagnosticsFormat>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="$(Configuration.Contains('Clang'))">
     <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>-std=c++1z %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -82,6 +85,7 @@
   <ItemDefinitionGroup Condition="$(Configuration.Contains('Release'))">
     <ClCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <OptimizeReferences>true</OptimizeReferences>
@@ -96,16 +100,11 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <SDLCheck>true</SDLCheck>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <ControlFlowGuard>false</ControlFlowGuard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-	  <DisableSpecificWarnings>4514;4710;4711</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Clang|x64'">
-    <ClCompile>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-    </ClCompile>
     <Link>
       <AdditionalDependencies>concrt.lib;msvcprt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -113,13 +112,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <Optimization>Full</Optimization>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-	  <DisableSpecificWarnings>4514;4710;4711</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -140,19 +136,16 @@
     <ClInclude Include="interface\TaskParameters.h" />
     <ClInclude Include="interface\TaskParameterUnmounter.h" />
     <ClInclude Include="interface\TaskScheduler.h" />
-    <ClInclude Include="interface\tuple_ext.h" />
-    <ClInclude Include="interface\type_traits_ext.h" />
     <ClInclude Include="interface\Utilities.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="thirdparty\ntpebteb.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="implementation\Fiber.cpp" />
     <ClCompile Include="implementation\FiberEntry.cpp" />
     <ClCompile Include="implementation\FiberPool.cpp" />
     <ClCompile Include="implementation\stdafx.cpp">
-      <ExcludedFromBuild Condition="$(Configuration.Contains('Clang'))">true</ExcludedFromBuild>
       <PrecompiledHeader Condition="!$(Configuration.Contains('Clang'))">Create</PrecompiledHeader>
+      <ExcludedFromBuild Condition="$(Configuration.Contains('Clang'))">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="implementation\Task.cpp" />
     <ClCompile Include="implementation\TaskScheduler.cpp" />
@@ -167,20 +160,9 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="interface\RefCountedObject.natvis" />
-    <Natvis Include="interface\Task.natvis" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ExternalVisualCppTools.props" />
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\VisualCppTools.14.0.24710-Pre\build\native\VisualCppTools.props'))" />
-  </Target>
 </Project>

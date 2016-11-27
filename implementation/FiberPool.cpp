@@ -8,9 +8,9 @@ static_assert((sizeof(uint32_t) == sizeof(DWORD)) && ::std::is_unsigned_v<uint32
 static_assert(::std::is_same_v<size_t, DWORD64>, "The size_t and DWORD64 don't equal.");
 static_assert(::std::is_same_v<size_t, uintptr_t>, "The size_t and uintptr_t don't equal.");
 
-namespace Focus::Concurency::Internal {
+namespace Focus::Concurrency::Internal {
 
-constexpr bool _pageGuardUsed = _analyze;
+constexpr bool _pageGuardUsed = 1; // _analyze;
 
 constexpr TaskParameters::Priority  priorities[] = { TaskParameters::Priority::High, TaskParameters::Priority::Normal, TaskParameters::Priority::Low };
 constexpr TaskParameters::StackType stackTypes[] = { TaskParameters::StackType::Large, TaskParameters::StackType::Medium, TaskParameters::StackType::Small };
@@ -21,11 +21,16 @@ void FiberPool::Initialize(const TaskScheduler::InitDesc& fiberPoolInitDesc, uin
 	SYSTEM_INFO systemInfo;
 	::GetSystemInfo(&systemInfo);
 
-	*(GetAddressofFiberPool_()) = ::new FiberPool(fiberPoolInitDesc, systemInfo.dwPageSize, numberOfThreads == 0 ? systemInfo.dwNumberOfProcessors : numberOfThreads);
+	*(GetAddressofFiberPool_()) = new FiberPool(fiberPoolInitDesc, systemInfo.dwPageSize, numberOfThreads == 0 ? systemInfo.dwNumberOfProcessors : numberOfThreads);
 }
 
-#pragma warning(push)
-#pragma warning(disable : 4355)
+void* FiberPool::operator new(STD size_t size) {
+	return _aligned_malloc(size, STD alignment_of_v<FiberPool>);
+}
+
+void FiberPool::operator delete(void* ptr) {
+	_aligned_free(ptr);
+}
 
 FiberPool::FiberPool(const TaskScheduler::InitDesc& fiberPoolInitDesc, uint32_t pageSize, uint32_t numberOfThreads)
 	: scheduledQueues{
@@ -47,16 +52,16 @@ FiberPool::FiberPool(const TaskScheduler::InitDesc& fiberPoolInitDesc, uint32_t 
 	const size_t sizeOfGuardPage = _pageGuardUsed ? pageSize : 0;
 
 	const size_t differentStackSizes[] = {
-	  fiberPoolInitDesc.largeStackSize  ? (Utils::Align(fiberPoolInitDesc.largeStackSize,  pageSize, Utils::AlignWay::Up) + sizeOfGuardPage) : 0,
-	  fiberPoolInitDesc.mediumStackSize ? (Utils::Align(fiberPoolInitDesc.mediumStackSize, pageSize, Utils::AlignWay::Up) + sizeOfGuardPage) : 0,
-	  fiberPoolInitDesc.smallStackSize  ? (Utils::Align(fiberPoolInitDesc.smallStackSize,  pageSize, Utils::AlignWay::Up) + sizeOfGuardPage) : 0
+		fiberPoolInitDesc.largeStackSize  ? (Utilities::Align(fiberPoolInitDesc.largeStackSize,  pageSize, Utilities::AlignWay::Up) + sizeOfGuardPage) : 0,
+		fiberPoolInitDesc.mediumStackSize ? (Utilities::Align(fiberPoolInitDesc.mediumStackSize, pageSize, Utilities::AlignWay::Up) + sizeOfGuardPage) : 0,
+		fiberPoolInitDesc.smallStackSize  ? (Utilities::Align(fiberPoolInitDesc.smallStackSize,  pageSize, Utilities::AlignWay::Up) + sizeOfGuardPage) : 0
 	};
 
 	const size_t stackPoolSize = (
 		  differentStackSizes[0] * fiberPoolInitDesc.largeTaskCount
 		+ differentStackSizes[1] * fiberPoolInitDesc.mediumTaskCount
 		+ differentStackSizes[2] * fiberPoolInitDesc.smallTaskCount
-		);
+	);
 
 	stackPoolPtr = ::VirtualAlloc(nullptr, stackPoolSize, MEM_COMMIT, PAGE_READWRITE); assert(stackPoolPtr);
 
@@ -74,8 +79,8 @@ FiberPool::FiberPool(const TaskScheduler::InitDesc& fiberPoolInitDesc, uint32_t 
 				auto result = ::VirtualProtect(reinterpret_cast<void*>(currentFibersAddress), sizeOfGuardPage, PAGE_NOACCESS, &oldProtect); assert(result); UNUSED(result);
 			}
 
-			auto stackLimit = currentFibersAddress + sizeOfGuardPage;
-			auto stackBase = currentFibersAddress + currentFibersSize - sizeof(Fiber); assert((stackBase & 0x0F) == 0); // stackBase must be aligned on a 16-byte boundary
+			const auto stackLimit = currentFibersAddress + sizeOfGuardPage;
+			const auto stackBase = currentFibersAddress + currentFibersSize - sizeof(Fiber); assert((stackBase & 0x0F) == 0); // stackBase must be aligned on a 16-byte boundary
 
 			auto addressOfFiber = reinterpret_cast<Fiber*>(stackBase);
 
@@ -94,8 +99,6 @@ FiberPool::FiberPool(const TaskScheduler::InitDesc& fiberPoolInitDesc, uint32_t 
 	}
 }
 
-#pragma warning( pop )
-
 FiberPool::~FiberPool() noexcept {
 	threadPool.ShutdownThreads();
 	*GetAddressofFiberPool_() = nullptr;
@@ -108,19 +111,20 @@ FiberPool::~FiberPool() noexcept {
 }
 
 Fiber* FiberPool::GetNextFiber() noexcept {
-	Fiber* fiber = nullptr;
 	for (;;) {
-		if (scheduledQueues[(int)TaskParameters::Priority::High].try_dequeue(fiber)) {
+		Fiber* fiber = nullptr;
+
+		if (scheduledQueues[(int)TaskParameters::Priority::High].dequeue(fiber)) {
 			fiber->Priority = TaskParameters::Priority::High;
 			return fiber;
 		}
 
-		if (scheduledQueues[(int)TaskParameters::Priority::Normal].try_dequeue(fiber)) {
+		if (scheduledQueues[(int)TaskParameters::Priority::Normal].dequeue(fiber)) {
 			fiber->Priority = TaskParameters::Priority::Normal;
 			return fiber;
 		}
 
-		if (scheduledQueues[(int)TaskParameters::Priority::Low].try_dequeue(fiber)) {
+		if (scheduledQueues[(int)TaskParameters::Priority::Low].dequeue(fiber)) {
 			fiber->Priority = TaskParameters::Priority::Low;
 			return fiber;
 		}
@@ -132,10 +136,10 @@ Fiber* FiberPool::GetNextFiber() noexcept {
 }
 
 Fiber* FiberPool::GetEmptyFiber(TaskParameters::StackType stackType) noexcept {
-	Fiber* fiber = nullptr;
 	for (;;) {
+		Fiber* fiber = nullptr;
 
-		if (emptyQueues[(int)stackType].try_dequeue(fiber))
+		if (emptyQueues[(int)stackType].dequeue(fiber))
 			return fiber;
 
 		Yield();
@@ -162,7 +166,7 @@ void FiberPool::RecyclingFiber(Fiber* fiber) noexcept {
 
 struct Releaser {
 	~Releaser() noexcept {
-		::delete GetFiberPool_();
+		delete GetFiberPool_();
 	}
 };
 

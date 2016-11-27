@@ -5,7 +5,7 @@
 #include "FiberPoolInternal.h"
 #include "Utilities.h"
 
-namespace Focus::Concurency::Internal {
+namespace Focus::Concurrency::Internal {
 
 void InitFiberOnCurrentThread(Fiber* fiber) noexcept {
 	assert(fiber);
@@ -39,7 +39,7 @@ void* GetMemory(Fiber* fiber, size_t size) noexcept {
 	assert(fiber);
 	assert((fiber->StackBase & 0x0F) == 0);
 
-	const auto addressOfExecuableObject = Utils::Align(fiber->StackBase - size); // 16 byte alignment.
+	const auto addressOfExecuableObject = Utilities::Align(fiber->StackBase - size); // 16 byte alignment.
 	const auto addressOfFunctionArguments = addressOfExecuableObject - Internal::SizeOfFiberInternalFuncsReserved;
 
 	const auto addressOfFiberArgument = addressOfFunctionArguments + Internal::OffsetOfFiberInInternalFuncsArgs;

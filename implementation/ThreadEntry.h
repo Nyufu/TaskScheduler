@@ -2,7 +2,7 @@
 
 #include "WinAPI.h"
 
-namespace Focus::Concurency::Internal {
+namespace Focus::Concurrency::Internal {
 
 DWORD WINAPI ThreadEntry(LPVOID lpParameter);
 

@@ -2,42 +2,46 @@
 #include "Task.h"
 
 #include <iostream>
-#include <thread>
-#include "TaskScheduler.h"
 
-using namespace std::chrono_literals;
+//#pragma optimize( "", off )  
+//__declspec(noinline) void dummy() {
+//}
+//#pragma optimize( "", on )   
+
 
 namespace BuildTest {
 namespace FLMOIF {
 
 int foo() {
 	std::cout << "Task 2\n";
+	//dummy();
 	return 5;
 }
 
 void Test() {
-	auto task = Focus::Concurency::CreateTask(foo);
+	auto task = Focus::Concurrency::CreateTask(foo);
 
 	std::cout << "Task 1 Step 1.\n";
-	
+	//dummy();
 	std::cout << "Task 1 will be yielded.\n";
-	Focus::Concurency::Yield();
+	Focus::Concurrency::Yield();
 	std::cout << "Task 1 revived.\n";
-
+	//dummy();
 	std::cout << "Task 2 result " << task.Get() << "\n";
 }
 
 void BuildTestMethod() {
-	Focus::Concurency::TaskScheduler::Initialize(1);
+	Focus::Concurrency::TaskScheduler::Initialize(4);
 
 	auto event_ = ::CreateEvent(nullptr, false, false, nullptr);
 
-	auto task = Focus::Concurency::CreateTask([&](int k, auto f) {
+	auto task = Focus::Concurrency::CreateTask([&](int k, auto f) {
 		std::cout << "print task parameters: " << k << ", " << f << "\n";
+		//dummy();
 		Test();
 		SetEvent(event_);
 		return 5;
-	}, 55, "char dfg", Focus::Concurency::TaskParameters::Priority::Normal, Focus::Concurency::TaskParameters::StackType::Large);
+	}, 55, "char dfg", Focus::Concurrency::TaskParameters::Priority::Low, Focus::Concurrency::TaskParameters::StackType::Large);
 
 	::WaitForSingleObject(event_, INFINITE);
 }

@@ -3,7 +3,7 @@
 #include "Fiber.h"
 #include "FiberPoolInternal.h"
 
-namespace Focus::Concurency::Internal {
+namespace Focus::Concurrency::Internal {
 
 struct TaskImplClone {
 	using MemberFunctionPtrType = void (TaskImplClone::*)();
@@ -15,7 +15,7 @@ void FiberEntry(void* /*rcx*/, void* /*rdx*/, void* /*r8*/, void* /*r9*/, Fiber*
 	assert(fiber);
 
 	auto execuableObject = static_cast<TaskImplClone*>(fiber->AddressOfExecuableObject);
-	_STD invoke(execuableObject->invokeFunction, execuableObject);
+	STD invoke(execuableObject->invokeFunction, execuableObject);
 
 	ResetFiber(fiber);
 

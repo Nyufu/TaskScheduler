@@ -5,7 +5,7 @@
 #include "TaskParameters.h"
 #include "WinAPI.h"
 
-namespace Focus::Concurency::Internal {
+namespace Focus::Concurrency::Internal {
 
 typedef _JUMP_BUFFER Context;
 
@@ -49,4 +49,4 @@ extern "C" {
 
 }
 
-#define GetFiber() (reinterpret_cast< ::Focus::Concurency::Internal::Fiber*>(GetCurrentFiber_()))
+#define GetFiber() (reinterpret_cast< ::Focus::Concurrency::Internal::Fiber*>(GetCurrentFiber_()))

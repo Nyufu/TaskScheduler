@@ -2,53 +2,19 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="implementation">
-      <UniqueIdentifier>{4f5ddc10-3243-45b9-8329-f6a70eb62fac}</UniqueIdentifier>
+      <UniqueIdentifier>{3e04b571-6457-4fed-9585-c04db3e63e4c}</UniqueIdentifier>
     </Filter>
     <Filter Include="interface">
-      <UniqueIdentifier>{ca3b0ff6-fbbd-45ca-b232-e6a830835c2e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="thirdparty">
-      <UniqueIdentifier>{f7450d96-7ed3-4d3e-9c09-cf86f1de72a9}</UniqueIdentifier>
+      <UniqueIdentifier>{a3343506-94f1-46f6-abb8-1104e2c34473}</UniqueIdentifier>
     </Filter>
     <Filter Include="test">
-      <UniqueIdentifier>{e71bad96-2290-4827-bf74-f2fba6b50551}</UniqueIdentifier>
+      <UniqueIdentifier>{291b16f4-3352-46c0-b369-d0a19f374af6}</UniqueIdentifier>
     </Filter>
     <Filter Include="implementation\Assembly">
-      <UniqueIdentifier>{68a494d5-89fe-4606-a8d8-c353303ddc5d}</UniqueIdentifier>
+      <UniqueIdentifier>{ac4df071-16b8-4624-a321-1f313775db79}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="implementation\Allocator.h">
-      <Filter>implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="implementation\CommonHeaders.h">
-      <Filter>implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="implementation\Fiber.h">
-      <Filter>implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="implementation\FiberEntry.h">
-      <Filter>implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="implementation\FiberPool.h">
-      <Filter>implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="implementation\FiberPoolInternal.h">
-      <Filter>implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="implementation\LockFreeRingBuffer.h">
-      <Filter>implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="implementation\ThreadEntry.h">
-      <Filter>implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="implementation\ThreadPool.h">
-      <Filter>implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="implementation\WinAPI.h">
-      <Filter>implementation</Filter>
-    </ClInclude>
     <ClInclude Include="interface\AsyncReturnValueWrapper.h">
       <Filter>interface</Filter>
     </ClInclude>
@@ -70,25 +36,47 @@
     <ClInclude Include="interface\TaskScheduler.h">
       <Filter>interface</Filter>
     </ClInclude>
-    <ClInclude Include="interface\tuple_ext.h">
-      <Filter>interface</Filter>
-    </ClInclude>
-    <ClInclude Include="interface\type_traits_ext.h">
-      <Filter>interface</Filter>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="implementation\CommonHeaders.h">
+      <Filter>implementation</Filter>
     </ClInclude>
     <ClInclude Include="interface\Utilities.h">
       <Filter>interface</Filter>
     </ClInclude>
-    <ClInclude Include="thirdparty\ntpebteb.h">
-      <Filter>thirdparty</Filter>
+    <ClInclude Include="implementation\WinAPI.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\Allocator.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\LockFreeRingBuffer.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\Fiber.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\FiberEntry.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\FiberPool.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\FiberPoolInternal.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\ThreadEntry.h">
+      <Filter>implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="implementation\ThreadPool.h">
+      <Filter>implementation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="implementation\stdafx.cpp">
-      <Filter>implementation</Filter>
-    </ClCompile>
     <ClCompile Include="test\main.cpp">
       <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="implementation\stdafx.cpp">
+      <Filter>implementation</Filter>
     </ClCompile>
     <ClCompile Include="implementation\Fiber.cpp">
       <Filter>implementation</Filter>
@@ -113,18 +101,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ExternalVisualCppTools.props" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Natvis Include="interface\RefCountedObject.natvis">
-      <Filter>interface</Filter>
-    </Natvis>
-    <Natvis Include="interface\Task.natvis">
-      <Filter>interface</Filter>
-    </Natvis>
-  </ItemGroup>
-  <ItemGroup>
     <MASM Include="implementation\Assembly\SwitchToFocusFiber.asm">
       <Filter>implementation\Assembly</Filter>
     </MASM>
@@ -134,5 +110,10 @@
     <MASM Include="implementation\Assembly\Yield.asm">
       <Filter>implementation\Assembly</Filter>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="interface\RefCountedObject.natvis">
+      <Filter>interface</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>

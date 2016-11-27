@@ -1,40 +1,103 @@
+// MIT License
+//
+// Copyright (c) 2016 Andris Nyiscsák
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 #pragma once
-#include "Config.h"
-#include <atomic>
+
 #include "Allocator.h"
+#include <atomic>
+#include <cstddef>
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+#include <utility>
 
-template<class _Ty, class _Alloc = Allocator<_Ty>>
-class LockFreeRingBuffer {
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4324)
+// Warning C4324 'LockFreeRingBufferTrivialMovable<Ty,Alloc>': structure was padded due to alignment specifier https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4324
+#endif
 
-	static_assert(_STD is_pod_v<_Ty>, "This ringbufffer stil doesn't work with non POD types.");
+static constexpr STD size_t cacheline_size = 64;
 
+template<class Ty, class Alloc = Allocator<Ty>>
+class LockFreeRingBufferTrivialMovable {
 private:
-	LockFreeRingBuffer() = delete;
+	LockFreeRingBufferTrivialMovable() = delete;
 
-	LockFreeRingBuffer(const LockFreeRingBuffer&) = delete;
-	LockFreeRingBuffer(LockFreeRingBuffer&&) = delete;
+	LockFreeRingBufferTrivialMovable(const LockFreeRingBufferTrivialMovable&) = delete;
+	LockFreeRingBufferTrivialMovable(LockFreeRingBufferTrivialMovable&&) = delete;
 
-	LockFreeRingBuffer& operator=(const LockFreeRingBuffer&) = delete;
-	LockFreeRingBuffer& operator=(LockFreeRingBuffer&&) = delete;
+	LockFreeRingBufferTrivialMovable& operator=(const LockFreeRingBufferTrivialMovable&) = delete;
+	LockFreeRingBufferTrivialMovable& operator=(LockFreeRingBufferTrivialMovable&&) = delete;
 
 public:
-	_CONSTEXPR14 LockFreeRingBuffer(uint32_t size) noexcept;
-	~LockFreeRingBuffer() noexcept;
+	LockFreeRingBufferTrivialMovable(STD size_t size);
+	~LockFreeRingBufferTrivialMovable() noexcept;
 
-	_CONSTEXPR14 bool enqueue(_Ty value) noexcept;
+	bool enqueue(const Ty& value) noexcept;
+	bool enqueue(Ty&& value) noexcept(STD is_nothrow_move_assignable_v<Ty>);
 
-	_CONSTEXPR14 bool try_dequeue(_Ty& value) noexcept;
+	bool dequeue(Ty& value) noexcept;
 
-	_CONSTEXPR14 size_t size_approx() const noexcept;
+	STD size_t capacity() const noexcept;
+	STD size_t size_approx() const noexcept;
 
 protected:
-	const size_t capacity;
+	struct Pack {
+		const STD size_t	capacity;
+		Ty* const			data;
+	};
 
-	_Ty* const data;
+	static_assert(sizeof(Pack) < cacheline_size, "The capacity and the data pointer don't fit into a cache line!");
 
-	_STD atomic_uint64_t reserver;
-	_STD atomic_uint64_t last;
-	_STD atomic_uint64_t first;
+protected:
+	alignas(cacheline_size)Pack				 pack;
+
+	alignas(cacheline_size)STD atomic_size_t reserver;
+	alignas(cacheline_size)STD atomic_size_t last;
+	alignas(cacheline_size)STD atomic_size_t first;
+};
+
+template<class Ty, class Alloc = Allocator<Ty>>
+class LockFreeRingBufferNonTrivialMovable : public LockFreeRingBufferTrivialMovable<Ty, Alloc> {
+private:
+	LockFreeRingBufferNonTrivialMovable() = delete;
+
+	LockFreeRingBufferNonTrivialMovable(const LockFreeRingBufferNonTrivialMovable&) = delete;
+	LockFreeRingBufferNonTrivialMovable(LockFreeRingBufferNonTrivialMovable&&) = delete;
+
+	LockFreeRingBufferNonTrivialMovable& operator=(const LockFreeRingBufferNonTrivialMovable&) = delete;
+	LockFreeRingBufferNonTrivialMovable& operator=(LockFreeRingBufferNonTrivialMovable&&) = delete;
+
+protected:
+	using MyBase = LockFreeRingBufferTrivialMovable<Ty, Alloc>;
+
+public:
+	LockFreeRingBufferNonTrivialMovable(STD size_t size);
+
+	bool dequeue(Ty& value) noexcept(STD is_nothrow_move_assignable_v<Ty>);
+
+protected:
+	alignas(cacheline_size)STD atomic_size_t lastReserver;
 };
 
 #if defined(__clang__) && __clang__
@@ -43,62 +106,140 @@ protected:
 #define lzcnt64(x) __lzcnt64(x)
 #endif
 
-template<class _Ty, class _Alloc>
-_CONSTEXPR14 LockFreeRingBuffer<_Ty, _Alloc>::LockFreeRingBuffer(uint32_t size) noexcept
-	: capacity{ (2ull << lzcnt64(size)) - 1 }
-	, data{ size ? _Alloc::Allocate(2ull << lzcnt64(size)) : nullptr }
+template<class Ty, class Alloc>
+LockFreeRingBufferTrivialMovable<Ty, Alloc>::LockFreeRingBufferTrivialMovable(STD size_t size)
+	: pack{ { size ? (2ul << lzcnt64(size)) - 1 : 0ul },
+			{ size ? Alloc::Allocate(2ull << lzcnt64(size)) : nullptr } }
 	, reserver{ 0 }
 	, last{ 0 }
 	, first{ 0 } {
-	assert((size != 0 && data != nullptr) || (size == 0 && data == nullptr));
+	assert((size != 0 && pack.data != nullptr) || (size == 0 && pack.data == nullptr));
 }
 
-template<class _Ty, class _Alloc>
-LockFreeRingBuffer<_Ty, _Alloc>::~LockFreeRingBuffer() noexcept {
-	_Alloc::DeAllocate(data);
+template<class Ty, class Alloc>
+LockFreeRingBufferTrivialMovable<Ty, Alloc>::~LockFreeRingBufferTrivialMovable() noexcept {
+	Alloc::DeAllocate(pack.data);
 }
 
-template<class _Ty, class _Alloc>
-_CONSTEXPR14 bool LockFreeRingBuffer<_Ty, _Alloc>::enqueue(_Ty value) noexcept {
-	const auto mask = capacity;
+template<class Ty, class Alloc>
+bool LockFreeRingBufferTrivialMovable<Ty, Alloc>::enqueue(const Ty& value) noexcept {
+	const auto mask = pack.capacity;
 
-	uint64_t currentReserver = 0;
+	auto candidate = reserver.load();
+	decltype(candidate) incremented = 0;
 
 	do {
-		currentReserver = reserver.load();
+		incremented = (candidate + 1) & mask;
 
-		if ((last.load() & mask) == ((currentReserver + 1) & mask))
+		if (last.load() == incremented)
 			return false;
 
-	} while (!reserver.compare_exchange_weak(currentReserver, currentReserver + 1));
+	} while (!reserver.compare_exchange_weak(candidate, incremented));
 
-	data[currentReserver & mask] = value;
+	auto reserved = candidate;
 
-	for (auto expectedFirst = currentReserver; !first.compare_exchange_weak(expectedFirst, currentReserver + 1); expectedFirst = currentReserver)
+	pack.data[reserved] = value;
+
+	for (const auto savedReserver = reserved; !first.compare_exchange_weak(reserved, incremented); reserved = savedReserver)
 		;
 
 	return true;
 }
 
-template<class _Ty, class _Alloc>
-_CONSTEXPR14 bool LockFreeRingBuffer<_Ty, _Alloc>::try_dequeue(_Ty& value) noexcept {
-	const auto mask = capacity;
-	const auto ptr = data;
+template<class Ty, class Alloc>
+bool LockFreeRingBufferTrivialMovable<Ty, Alloc>::enqueue(Ty&& value) noexcept(STD is_nothrow_move_assignable_v<Ty>) {
+	const auto mask = pack.capacity;
 
-	auto currentLast = last.load(_STD memory_order_acquire);
+	auto candidate = reserver.load();
+	decltype(candidate) incremented = 0;
 
 	do {
-		if (first.load(_STD memory_order_acquire) == currentLast)
+		incremented = (candidate + 1) & mask;
+
+		if (last.load() == incremented)
 			return false;
 
-		value = ptr[currentLast & mask];
+	} while (!reserver.compare_exchange_weak(candidate, incremented));
 
-	} while (!last.compare_exchange_weak(currentLast, currentLast + 1, _STD memory_order_release, _STD memory_order_relaxed));
+	auto reserved = candidate;
+
+	pack.data[reserved] = STD forward<Ty>(value);
+
+	for (const auto savedReserver = reserved; !first.compare_exchange_weak(reserved, incremented); reserved = savedReserver)
+		;
 
 	return true;
 }
 
-template<class _Ty, class _Alloc>
-_CONSTEXPR14 size_t LockFreeRingBuffer<_Ty, _Alloc>::size_approx() const noexcept {
-	return first.load(_STD memory_order_relaxed) - last.load(_STD memory_order_relaxed);
+template<class Ty, class Alloc>
+bool LockFreeRingBufferTrivialMovable<Ty, Alloc>::dequeue(Ty& value) noexcept {
+	const auto mask = pack.capacity;
+	const auto ptr = pack.data;
+
+	auto currentLast = last.load();
+
+	do {
+		if (first.load() == currentLast)
+			return false;
+
+		value = ptr[currentLast];
+
+	} while (!last.compare_exchange_weak(currentLast, (currentLast + 1) & mask));
+
+	return true;
 }
+
+template<class Ty, class Alloc>
+STD size_t LockFreeRingBufferTrivialMovable<Ty, Alloc>::capacity() const noexcept {
+	return pack.capacity;
+}
+
+template<class Ty, class Alloc>
+STD size_t LockFreeRingBufferTrivialMovable<Ty, Alloc>::size_approx() const noexcept {
+	return first.load(STD memory_order_relaxed) - last.load(STD memory_order_relaxed);
+}
+
+template<class Ty, class Alloc>
+LockFreeRingBufferNonTrivialMovable<Ty, Alloc>::LockFreeRingBufferNonTrivialMovable(STD size_t size)
+	: MyBase(size),
+	lastReserver{ 0 } {
+}
+
+template<class Ty, class Alloc>
+bool LockFreeRingBufferNonTrivialMovable<Ty, Alloc>::dequeue(Ty& value) noexcept(STD is_nothrow_move_assignable_v<Ty>) {
+	const auto mask = MyBase::pack.capacity;
+
+	auto candidate = lastReserver.load();
+	decltype(candidate) incremented = 0;
+
+	do {
+		if (MyBase::first.load() == candidate)
+			return false;
+
+		incremented = (candidate + 1) & mask;
+
+	} while (!lastReserver.compare_exchange_weak(candidate, incremented));
+
+	auto reserved = candidate;
+
+	value = STD move(MyBase::pack.data[reserved]);
+
+	for (const auto savedReserved = reserved; !MyBase::last.compare_exchange_weak(reserved, incremented); reserved = savedReserved)
+		;
+
+	return true;
+}
+
+template<class Ty, class Alloc = Allocator<Ty>>
+using LockFreeRingBuffer =
+STD conditional_t<
+	STD is_trivially_move_assignable_v<Ty>,
+	LockFreeRingBufferTrivialMovable<Ty, Alloc>,
+	LockFreeRingBufferNonTrivialMovable<Ty, Alloc>
+>;
+
+static_assert((sizeof(LockFreeRingBuffer<void*>) & (cacheline_size - 1)) == 0, "The LockFreeRingBuffer has unexpected size!");
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

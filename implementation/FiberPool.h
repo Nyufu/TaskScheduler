@@ -5,16 +5,16 @@
 #include "TaskScheduler.h"
 #include "ThreadPool.h"
 
-namespace Focus::Concurency::Internal {
+namespace Focus::Concurrency::Internal {
 
 struct Fiber;
-
-#pragma warning(push)
-#pragma warning(disable : 4201)
 
 class FiberPool {
 public:
 	static void Initialize(const TaskScheduler::InitDesc& fiberPoolInitDesc, uint32_t numberOfThreads = 0);
+
+	static void* operator new(STD size_t size);
+	static void operator delete(void* ptr);
 
 private:
 	FiberPool(const TaskScheduler::InitDesc& fiberPoolInitDesc, uint32_t pageSize, uint32_t numberOfThreads);
@@ -49,7 +49,5 @@ private:
 
 	void* stackPoolPtr = nullptr;
 };
-
-#pragma warning( pop )
 
 }

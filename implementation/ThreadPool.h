@@ -1,21 +1,27 @@
 #pragma once
 
+#include <atomic>
 #include <concurrent_unordered_map.h>
 #include <concurrent_vector.h>
+#include <mutex>
 #include "RefCountedObject.h"
 
-namespace Focus::Concurency::Internal {
+namespace Focus::Concurrency::Internal {
 
 struct Fiber;
 class FiberPool;
 
 class ThreadPool {
-public:
+protected:
 	struct ThreadArgumentPassingContainer {
 		FiberPool*			fiberPool;
 		ThreadPool*			threadPool;
-		uint32_t			threadCount;
-		volatile uint32_t	threadIndex;
+		const uint32_t		threadCount;
+		STD atomic_uint32_t	threadIndex;
+
+		ThreadArgumentPassingContainer(FiberPool* fiberPool_, ThreadPool* threadPool_, uint32_t threadCount_, uint32_t threadIndex_)
+			: fiberPool{ fiberPool_ }, threadPool{ threadPool_ }, threadCount{ threadCount_ }, threadIndex{ threadIndex_ } {
+		}
 	};
 
 private:
@@ -41,6 +47,8 @@ protected:
 	::concurrency::concurrent_vector<HANDLE>				threadHandles;
 
 	void* threadPoolPtr = nullptr;
+
+	STD once_flag shutdownFlag;
 };
 
 }

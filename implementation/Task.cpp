@@ -2,7 +2,7 @@
 #include "Task.h"
 #include "Fiber.h"
 
-namespace Focus::Concurency {
+namespace Focus::Concurrency {
 
 void Yield() noexcept {
 	Internal::Yield();

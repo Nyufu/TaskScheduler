@@ -4,13 +4,12 @@
 #include "RefCountedObject.h"
 #include "TaskParameterUnmounter.h"
 #include "TaskScheduler.h"
-#include "tuple_ext.h"
-#include "type_traits_ext.h"
+#include <tuple>
 #include "Utilities.h"
 
-namespace Focus::Concurency {
+namespace Focus::Concurrency {
 
-template<typename Type>
+template<typename Ty>
 class Task;
 
 enum class TaskStatus : uint8_t {
@@ -32,16 +31,13 @@ enum class TaskInternalState : uint8_t {
 struct Empty {
 };
 
-template<class _Ty>
+template<typename Ty>
 struct ReturnValueType {
-	AsyncReturnValueWrapper<_Ty> returnValue;
+	AsyncReturnValueWrapper<Ty> returnValue;
 };
 
-#pragma warning(push)
-#pragma warning(disable: 4820)
-
-template<class _Ty>
-struct TasksSharedData : public _STD conditional_t<_STD is_void_v<_Ty>, Empty, ReturnValueType<_Ty>> {
+template<class Ty>
+struct TasksSharedData : public STD conditional_t<STD is_void_v<Ty>, Empty, ReturnValueType<Ty>> {
 	TaskInternalState state = TaskInternalState::Created;
 };
 
@@ -54,28 +50,28 @@ struct TaskImpl {
 	TaskImpl& operator=(const TaskImpl&) = delete;
 	TaskImpl& operator=(TaskImpl&&) = delete;
 
-	_CONSTEXPR14 TaskImpl(Func&& _func, Args&&... _args) noexcept
-		: func(_func), args{ _STD forward<Args>(_args)... }, sharedData{ AllocateToken } {
+	TaskImpl(Func&& _func, Args&&... _args) noexcept
+		: func(_func), args{ STD forward<Args>(_args)... }, sharedData{ AllocateToken } {
 	}
 
-	_CONSTEXPR14 void Destruct() noexcept {
+	void Destruct() noexcept {
 		this->~TaskImpl();
 	}
 
-	_CONSTEXPR14 void Execute(_STD true_type) {
-		_STD apply(_STD forward<Func>(func), _STD forward<_STD tuple<Args...>>(args));
+	void Execute(STD true_type) {
+		STD apply(STD forward<Func>(func), STD forward<STD tuple<Args...>>(args));
 	}
 
-	_CONSTEXPR14 void Execute(_STD false_type) {
-		sharedData->returnValue.Set(_STD apply(_STD forward<Func>(func), _STD forward<_STD tuple<Args...>>(args)));
+	void Execute(STD false_type) {
+		sharedData->returnValue.Set(STD apply(STD forward<Func>(func), STD forward<STD tuple<Args...>>(args)));
 	}
 
 	void Invoke() noexcept {
 		sharedData->state = TaskInternalState::Started;
 
 		//try
-		Execute(_STD is_void<ReturnType>{});
-		//catch ( const _STD exception& )
+		Execute(STD is_void<ReturnType>{});
+		//catch ( const STD exception& )
 		//	;
 
 		sharedData->state = TaskInternalState::Completed;
@@ -90,59 +86,57 @@ protected:
 	InvokeFunctionPtrType invokeFunction = &TaskImpl<ReturnType, Func, Args...>::Invoke;
 
 	Func func;
-	_STD tuple<Args...> args;
+	STD tuple<Args...> args;
 	RefCountedObject<TasksSharedData<ReturnType>> sharedData;
 
 protected:
-	template<typename, class Enable, typename...>
+	template<typename, typename Enable, typename...>
 	friend struct CreateTaskHelper;
 };
 
-#pragma warning(pop)
-
 template<typename Func, typename... Args>
-struct CreateTaskHelper<Utils::Tuple<Func, Args...>, _STD enable_if_t<_STD is_callable_v<Func(Args...)>>> {
-	using ReturnType = _STD result_of_t<Func(Args...)>;
+struct CreateTaskHelper<Utilities::Tuple<Func, Args...>, STD enable_if_t<STD is_callable_v<Func(Args...)>>> {
+	using ReturnType = STD result_of_t<Func(Args...)>;
 	using TaskType = Task<ReturnType>;
 
-	static constexpr bool is_callable_v = _STD is_callable_v<Func(Args...)>;
+	static constexpr bool is_callable_v = STD is_callable_v<Func(Args...)>;
 
 	using SpecializedTaskImpl = TaskImpl<ReturnType, Func, Args...>;
-	static constexpr size_t sizeof_TaskImpl = sizeof(SpecializedTaskImpl);
+	static constexpr STD size_t sizeof_TaskImpl = sizeof(SpecializedTaskImpl);
 
 	static __forceinline void CreateTask(Func&& func, Args&&... args, TaskType& task) noexcept {
 		TaskScheduler::TaskObject taskObject;
 		TaskScheduler::InitTaskObject(taskObject, TaskParameters::DefaultStackType, TaskParameters::DefaultPriority);
 
-		task.sharedData = (::new (taskObject.GetMemory(sizeof_TaskImpl)) SpecializedTaskImpl{ _STD forward<Func>(func), _STD forward<Args>(args)... })->sharedData;
+		task.sharedData = (::new (taskObject.GetMemory(sizeof_TaskImpl)) SpecializedTaskImpl{ STD forward<Func>(func), STD forward<Args>(args)... })->sharedData;
 	}
 
 	static __forceinline void CreateTask(Func&& func, Args&&... args, TaskParameters::StackType stackType, TaskType& task) noexcept {
 		TaskScheduler::TaskObject taskObject;
 		TaskScheduler::InitTaskObject(taskObject, stackType, TaskParameters::DefaultPriority);
 
-		task.sharedData = (::new (taskObject.GetMemory(sizeof_TaskImpl)) SpecializedTaskImpl{ _STD forward<Func>(func), _STD forward<Args>(args)... })->sharedData;
+		task.sharedData = (::new (taskObject.GetMemory(sizeof_TaskImpl)) SpecializedTaskImpl{ STD forward<Func>(func), STD forward<Args>(args)... })->sharedData;
 	}
 
 	static __forceinline void CreateTask(Func&& func, Args&&... args, TaskParameters::Priority priority, TaskType& task) noexcept {
 		TaskScheduler::TaskObject taskObject;
 		TaskScheduler::InitTaskObject(taskObject, TaskParameters::DefaultStackType, priority);
 
-		task.sharedData = (::new (taskObject.GetMemory(sizeof_TaskImpl)) SpecializedTaskImpl{ _STD forward<Func>(func), _STD forward<Args>(args)... })->sharedData;
+		task.sharedData = (::new (taskObject.GetMemory(sizeof_TaskImpl)) SpecializedTaskImpl{ STD forward<Func>(func), STD forward<Args>(args)... })->sharedData;
 	}
 
 	static __forceinline void CreateTask(Func&& func, Args&&... args, TaskParameters::StackType stackType, TaskParameters::Priority priority, TaskType& task) noexcept {
 		TaskScheduler::TaskObject taskObject;
 		TaskScheduler::InitTaskObject(taskObject, stackType, priority);
 
-		task.sharedData = (::new (taskObject.GetMemory(sizeof_TaskImpl)) SpecializedTaskImpl{ _STD forward<Func>(func), _STD forward<Args>(args)... })->sharedData;
+		task.sharedData = (::new (taskObject.GetMemory(sizeof_TaskImpl)) SpecializedTaskImpl{ STD forward<Func>(func), STD forward<Args>(args)... })->sharedData;
 	}
 
 	static __forceinline void CreateTask(Func&& func, Args&&... args, TaskParameters::Priority priority, TaskParameters::StackType stackType, TaskType& task) noexcept {
 		TaskScheduler::TaskObject taskObject;
 		TaskScheduler::InitTaskObject(taskObject, stackType, priority);
 
-		task.sharedData = (::new (taskObject.GetMemory(sizeof_TaskImpl)) SpecializedTaskImpl{ _STD forward<Func>(func), _STD forward<Args>(args)... })->sharedData;
+		task.sharedData = (::new (taskObject.GetMemory(sizeof_TaskImpl)) SpecializedTaskImpl{ STD forward<Func>(func), STD forward<Args>(args)... })->sharedData;
 	}
 };
 
@@ -152,22 +146,22 @@ void Yield() noexcept;
 
 namespace Detail {
 
-template<typename Type>
+template<typename Ty>
 class TaskCommon {
 public:
-	using ReturnType = Type;
+	using ReturnType = Ty;
 	using MyType = TaskCommon<ReturnType>;
 
 public:
-	__forceinline bool IsDone() const noexcept {
+	bool IsDone() const noexcept {
 		return ((bool)(sharedData) ? false : (sharedData->state == Detail::TaskInternalState::Completed));
 	}
 
-	__forceinline TaskStatus Status() const noexcept {
+	TaskStatus Status() const noexcept {
 		return (IsDone() ? TaskStatus::Completed : TaskStatus::NotComplete);
 	}
 
-	__forceinline TaskStatus Wait() const noexcept {
+	TaskStatus Wait() const noexcept {
 		while (IsDone())
 			Yield();
 
@@ -178,22 +172,22 @@ protected:
 	RefCountedObject<Detail::TasksSharedData<ReturnType>> sharedData;
 
 protected:
-	template<typename, class Enable, typename...>
+	template<typename, typename Enable, typename...>
 	friend struct Detail::CreateTaskHelper;
 };
 
 }
 
-template<typename Type>
-class Task : public Detail::TaskCommon<Type> {
-	using MyBase = Detail::TaskCommon<Type>;
+template<typename Ty>
+class Task : public Detail::TaskCommon<Ty> {
+	using MyBase = Detail::TaskCommon<Ty>;
 
 public:
-	__forceinline typename MyBase::ReturnType Get() {
+	typename MyBase::ReturnType Get() {
 		MyBase::Wait();
 
 		if (!MyBase::sharedData)
-			throw _STD exception("Task isn't initialized!");
+			throw STD runtime_error("Task isn't initialized!");
 
 		return (MyBase::sharedData->returnValue.Get());
 	}
@@ -204,7 +198,7 @@ class Task<void> : public Detail::TaskCommon<void> {
 	using MyBase = Detail::TaskCommon<void>;
 
 public:
-	__forceinline void Get() noexcept {
+	void Get() noexcept {
 		MyBase::Wait();
 	}
 };
@@ -212,7 +206,7 @@ public:
 template<typename... Args>
 __declspec(noinline) auto CreateTask(Args&&... args) noexcept -> typename Detail::CreateTaskHelper<Detail::TaskParameterUnmounter<Args...>>::TaskType {
 	typename Detail::CreateTaskHelper<Detail::TaskParameterUnmounter<Args...>>::TaskType task{};
-	Detail::CreateTaskHelper<Detail::TaskParameterUnmounter<Args...>>::CreateTask(_STD forward<Args>(args)..., task);
+	Detail::CreateTaskHelper<Detail::TaskParameterUnmounter<Args...>>::CreateTask(STD forward<Args>(args)..., task);
 	return (task);
 }
 
